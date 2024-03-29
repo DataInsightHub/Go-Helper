@@ -55,7 +55,7 @@ func Get[T any](client *HttpClient, url string, headers map[string]string) (T, e
 	return parseJSON[T](body)
 }
 
-func Post[T, R any](client *HttpClient, url string, data T, headers map[string]string) (R, error) {
+func Post[R any](client *HttpClient, url string, data any, headers map[string]string) (R, error) {
 	var m R
 
 	b, err := toJSON(data)
