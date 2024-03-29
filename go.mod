@@ -1,4 +1,4 @@
-module github.com/DataInsightsHub/Go-Helper
+module github.com/DataInsightHub/Go-Helper
 
 go 1.18
 

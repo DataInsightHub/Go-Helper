@@ -3,7 +3,7 @@ package fp_test
 import (
 	"testing"
 
-	"github.com/DataInsightsHub/Go-Helper/fp"
+	"github.com/DataInsightHub/Go-Helper/fp"
 	"github.com/stretchr/testify/assert"
 )
 
