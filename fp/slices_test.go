@@ -1,7 +1,10 @@
 package fp_test
 
 import (
+	"fmt"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/DataInsightHub/Go-Helper/fp"
 	"github.com/stretchr/testify/assert"
@@ -53,6 +56,66 @@ func TestDistictBy(t *testing.T) {
 		})
 
 		assert.Equal(t, 2, len(distinctSlice), "slice did not contain only distinct elements")
+	})
+}
+
+func TestForEachParallel(t *testing.T) {
+	type person struct {
+		name string
+		name2 string 
+	}
+
+	t.Run("All persons should have the same values within", func(t *testing.T) {
+		slice := []person{
+			{name: "a"},
+			{name: "b"},
+			{name: "c"},
+		}
+
+		fp.ForEachParallel(slice, func(index int, p person) {
+			slice[index].name2 = p.name
+		})
+
+		for i := range slice {
+			assert.Equal(t, slice[i].name2, slice[i].name)
+		}
+	})
+
+	t.Run("All persons should have the same values within, with pointers", func(t *testing.T) {
+		slice := []*person{
+			{name: "a"},
+			{name: "b"},
+			{name: "c"},
+		}
+
+		fp.ForEachParallel(slice, func(_ int, p *person) {
+			p.name2 = p.name
+		})
+
+		for i := range slice {
+			assert.Equal(t, slice[i].name2, slice[i].name)
+		}
+	})
+
+	t.Run("Limit test", func(t *testing.T) {
+		slice := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+		const limit = 2
+
+		var active int32
+		err := fp.ForEachParallelWithError(slice, func(_ int, _ int) error{
+			n := atomic.AddInt32(&active, 1)
+			if n > limit {
+				return fmt.Errorf("saw %d active goroutines; want ≤ %d", n, limit)
+			}
+			time.Sleep(1 * time.Microsecond) // Give other goroutines a chance to increment active.
+			atomic.AddInt32(&active, -1)
+			return nil
+		}, fp.WithLimit(limit))
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
 	})
 }
 

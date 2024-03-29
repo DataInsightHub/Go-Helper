@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/gob"
 	"reflect"
+
+	"golang.org/x/sync/errgroup"
 )
 
 // IsEmptySlice reports whether the slice is empty or nil.
@@ -87,6 +89,46 @@ func ForEach[T any](slice []T, fn func(T)) {
 	for i := range slice {
 		fn(slice[i])
 	}
+}
+
+func ForEachParallelWithError[T any](slice []T, fn func(index int, value T) error, options ...SliceTransformOption) error {
+	o := &sliceOptions{}
+	for _, option := range options {
+		option.apply(o)
+	}
+
+	eg := errgroup.Group{}
+
+	if o.limit != nil {
+		eg.SetLimit(*o.limit)
+	}
+
+	for i := range slice {
+		index := i
+
+		eg.Go(func() error {
+			err := fn(index, slice[index])
+			if err != nil {
+				return err
+			}
+			return nil
+		})
+	}
+
+	if err := eg.Wait(); err != nil {
+        return err
+    }
+
+	return nil
+} 
+
+func ForEachParallel[T any](slice []T, fn func(index int, value T), options ...SliceTransformOption) {
+	emptyErrorFunc := func (i int, v T) error {
+		fn(i, v)
+		return nil
+	}
+
+	_ = ForEachParallelWithError(slice, emptyErrorFunc, options...)
 }
 
 // FindIndices returns the indices of all elements that match the predicate
