@@ -322,3 +322,20 @@ func GroupBy[K comparable, T any](slice []T, fn func(T) K) map[K][]T {
 	})
 
 }
+
+func Chunks[T any](slice []T, n int) [][]T {
+	var chunks [][]T
+
+    for i := 0; i < len(slice); i += n {
+        end := i + n
+
+        // Sicherstellen, dass end nicht größer als die Länge des Slice ist
+        if end > len(slice) {
+            end = len(slice)
+        }
+
+        chunks = append(chunks, slice[i:end])
+    }
+
+    return chunks
+}

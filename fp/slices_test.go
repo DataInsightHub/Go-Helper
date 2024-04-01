@@ -142,6 +142,19 @@ func TestReduce(t *testing.T) {
 	})
 }
 
+func TestChunks(t *testing.T) {
+	t.Run("Should return a new slice with each element is another slice with the same length", func(t *testing.T) {
+		slice := []string{"a", "b", "c", "d", "e", "f"}
+		chunks := fp.Chunks(slice, 2)
+
+		assert.Equal(t, 3, len(chunks))
+
+		for _, chunk := range chunks {
+			assert.Equal(t, 2, len(chunk))
+		}
+	})
+}
+
 func TestHead(t *testing.T) {
 	t.Run("Should return the first element of a slice", func(t *testing.T) {
 		slice := []string{"a", "b", "c", "d", "e", "f"}
